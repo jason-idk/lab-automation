@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# This script will build out a basic nginx testing environment. 
+# To destroy, use nginx-destroy. See below for more information. 
+
+DATE=`date +%x`
+DAY=$(date '+DATE: %m/%d/%y%tTIME:%H:%M:%S')
+LAB='Nginx lab build'
+NC='\033[0m' # No Color
+green='\033[0;32m'
+red='\033[0;31m'
+
+# This script must be ran as root, check to see if UID matches 0.
+	if [ "$(id -u)" != "0" ]; then
+   		echo "This script must be run as root" 1>&2
+   		exit 1
+	fi
+
+
+# Can we write the output to standard log file? Does it exist? $file will be used
+# throughout this script, see below for the defined variable. 
+	file='/var/log/lab-environment.log'
+
+	( [ -e "$file" ] || touch "$file" ) && [ ! -w "$file" ] && echo cannot write to $file && exit 1
+
+	echo -e "${green}$LAB started on $DAY...${NC}" >> $file
+
+
+# Install apache2 or httpd depending on operating system. 
+	if python -mplatform | grep -iq Ubuntu && apt-get install nginx -y | tee -a $file || yum install nginx -y | tee -a $file ; then
+		echo -e "${green}Nginx successfully installed.${NC}"
+	else
+		echo -e "${red}Nginx failed to install. Please check package-manger's log and try again.${NC}"
+	fi
