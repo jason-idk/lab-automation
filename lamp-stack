@@ -52,7 +52,7 @@ destroy)
 
 
 	# Remove apache2 or httpd depending on operating system. 
-	if python -mplatform | grep -iq Ubuntu && apt-get remove --purge mysql-client* mysql-server* php apache2 -y | tee -a $file || yum remove mysql-client* mysql-server* mariadb mariadb-server* php httpd -y | tee -a $file ; then
+	if python -mplatform | grep -iq Ubuntu && apt-get remove --purge mysql-client* mysql-server* php* apache2 -y | tee -a $file || yum remove mysql-client* mysql-server* mariadb mariadb-server* php* httpd -y | tee -a $file ; then
 		echo -e "${green}LAMP stack successfully removed.${NC}"
 	else
 		echo -e "${red}Packages failed to be removed. Please check package-manger's log and try again.${NC}"
