@@ -1,0 +1,61 @@
+#!/bin/bash 
+
+# This script will build out a basic LAMP stack testing environment. 
+# To destroy, use lamp-stack--destroy. See below for more information. 
+
+DATE=`date +%x`
+DAY=$(date '+DATE: %m/%d/%y%tTIME:%H:%M:%S')
+LAB='LAMP stack lab build'
+NC='\033[0m' # No Color
+green='\033[0;32m'
+red='\033[0;31m'
+file='/var/log/lab-environment.log'
+
+# This script must be ran as root, check to see if UID matches 0.
+	if [ "$(id -u)" != "0" ]; then
+   		echo "This script must be run as root" 1>&2
+   		exit 1
+	fi
+
+# How we're called...
+case "$1" in
+build)
+	( [ -e "$file" ] || touch "$file" ) && [ ! -w "$file" ] && echo cannot write to $file && exit 1
+        echo -e "${red}lamp-stack-build started on $DAY...${NC}" >> $file
+
+	# Install apache2 or httpd depending on operating system. 
+	if python -mplatform | grep -iq Ubuntu && apt-get install apache2 -y | tee -a $file || yum install httpd -y | tee -a $file ; then
+		echo -e "${green}Apache successfully installed.${NC}"
+	else
+		echo -e "${red}Apache failed to install. Please check package-manger's log and try again.${NC}"
+	fi
+
+
+	# Check OS, install mariadb or mysql-server depending on version.
+	if [ ! -e /etc/redhat-release ] ; then
+		echo -e "${green}Not a RedHat/CentOS system... Moving on.${NC}" >> $file && apt-get install -y mysql-server && echo -e "${green}MySQL successfully installed.${NC}" >> $file
+	elif [ ! -e /etc/lsb-release ] ; then 
+		echo -e "${green}Not a Ubuntu/Debian system... Moving on.${NC}" >> $file && yum install -y mysql-server mariadb && echo -e "${green}MySQL successfully installed.${NC}" >> $file
+	fi
+
+
+	# Install php to complete LAMP stack build. 
+	if python -mplatform | grep -iq Ubuntu && apt-get install php -y | tee -a $file || yum install php -y | tee -a $file ; then
+                echo -e "${green}PHP successfully installed. This completes the LAMP stack build.${NC}" >> $file
+        else
+                echo -e "${red}PHP failed to install. Please check package-manger's log and try again.${NC}" >> $file
+        fi
+	;;
+destroy)
+	( [ -e "$file" ] || touch "$file" ) && [ ! -w "$file" ] && echo cannot write to $file && exit 1
+	echo -e "${red}lamp-stack-destroy started on $DAY...${NC}" >> $file
+
+
+	# Remove apache2 or httpd depending on operating system. 
+	if python -mplatform | grep -iq Ubuntu && apt-get remove --purge mysql-client* mysql-server* php apache2 -y | tee -a $file || yum remove mysql-client* mysql-server* mariadb mariadb-server* php httpd -y | tee -a $file ; then
+		echo -e "${green}LAMP stack successfully removed.${NC}"
+	else
+		echo -e "${red}Packages failed to be removed. Please check package-manger's log and try again.${NC}"
+	fi
+	;;
+esac
