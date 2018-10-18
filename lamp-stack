@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 # This script will build out a basic LAMP stack testing environment. 
-# To destroy, use lamp-stack--destroy. See below for more information. 
+# To destroy, use lamp-stack destroy. See below for more information. 
 
 DATE=`date +%x`
 DAY=$(date '+DATE: %m/%d/%y%tTIME:%H:%M:%S')
