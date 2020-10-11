@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# This script will build out a basic nginx testing environment. 
+# To destroy, use nginx-destroy. See below for more information. 
+
+DATE=`date +%x`
+DAY=$(date '+DATE: %m/%d/%y%tTIME:%H:%M:%S')
+LAB='Apache lab build'
+NC='\033[0m' # No Color
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+FILE='/var/log/lab-environment.log'
+
+# This script must be ran as root, check to see if UID matches 0.
+	if [ "$(id -u)" != "0" ]; then
+   		echo "This script must be run as root" 1>&2
+   		exit 1
+	fi
+
+# How we're called...
+case "$1" in
+build)
+	( [ -e "$FILE" ] || touch "$FILE" ) && [ ! -w "$FILE" ] && echo cannot write to $FILE && exit 1
+    echo -e "${RED}$LAB started on $DAY...${NC}" >> $FILE
+
+    # Install apache2 or httpd depending on operating system. 
+	if python -mplatform | grep -iq Ubuntu && apt-get install apache2 -y | tee -a $file || yum install httpd -y | tee -a $file ; then
+		echo -e "${GREEN}Apache successfully installed.${NC}"
+	else
+		echo -e "${RED}Apache failed to install. Please check package-manger's log and try again.${NC}"
+	fi
+
+destroy)
+    ( [ -e "$FILE" ] || touch "$FILE" ) && [ ! -w "$FILE" ] && echo cannot write to $FILE && exit 1
+    echo -e "${RED}$LAB destroy started on $DAY...${NC}" >> $FILE
+
+    # Remove apache2 or httpd depending on operating system. 
+	if python -mplatform | grep -iq Ubuntu && apt-get remove apache2 -y | tee -a $file || yum remove httpd -y | tee -a $file ; then
+		echo -e "${GREEN}Apache successfully removed.${NC}"
+	else
+		echo -e "${RED}Apache failed to be removed. Please check package-manger's log and try again.${NC}"
+	fi
+    ;;
+esac
